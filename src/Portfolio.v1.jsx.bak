@@ -1,0 +1,1888 @@
+/**
+ * Riya Sharma — Developer Console Portfolio
+ * Single-file React component · Tailwind CSS · Framer Motion
+ */
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  MotionConfig,
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+
+import aiqaIntro from "./images/aiqa-intro.jpg";
+import aiqaHome from "./images/aiqa-home.jpg";
+import aiqaCoach from "./images/aiqa-info5.jpg";
+import aiqaDoctor from "./images/aiqa-info1.jpg";
+import aiqaLabTests from "./images/aiqa-info2.jpg";
+import aiqaPharmacy from "./images/aiqa-info3.jpg";
+import aiqaSpecialists from "./images/aiqa-info4.jpg";
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Profile data                                                              */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const PROFILE = {
+  developer: {
+    name: "Riya Sharma",
+    title: "React Native & Frontend Engineer",
+    bio: "Frontend engineer with 3+ years of experience building production-grade React Native and React applications — from a corporate health & wellness platform with wearable sync, to telemedicine and claims workflows, real-time field-force tracking, and a hackathon-winning AI vision module. I care deeply about typed architecture, fluid motion, and interfaces that feel truly native.",
+    contact: {
+      email: "riya.sharma.aboutme@gmail.com",
+      linkedin: "https://linkedin.com",
+    },
+    stats: [
+      { label: "Mobile Apps Shipped", value: "3+", icon: "smartphone" },
+      { label: "Web Apps Delivered", value: "4", icon: "globe" },
+      { label: "Hackathon Position", value: "1st Place", icon: "trophy" },
+    ],
+  },
+  projects: [
+    {
+      id: "aiqa",
+      title: "Aiqa Corporate App",
+      subtitle: "Employee Health & Wellness Platform",
+      tech: ["React Native", "TypeScript", "Zustand", "TanStack Query", "NativeWind"],
+      description:
+        "Architected a corporate health companion app with wearable sync and dynamic scoring systems.",
+      screenshots: [
+        { src: aiqaIntro, alt: "Aiqa onboarding screen — Smarter care starts here" },
+        { src: aiqaHome, alt: "Aiqa home dashboard with services and plan benefits" },
+        { src: aiqaCoach, alt: "Aiqa AI health coach chat" },
+      ],
+      phoneScreenMock: {
+        header: "Aiqa Health",
+        bgGradient: "from-teal-950 to-slate-900",
+        accentColor: "text-teal-400",
+        uiElements: [
+          { type: "metricCard", title: "Daily Telemetry", value: "7,420 Steps", sub: "Synced via Apple Health" },
+          { type: "progressRing", percentage: 74, label: "HRA Risk Score: Optimal" },
+          { type: "aiBubble", text: "AI Assistant: Your sleep cycle improved by 12% this week!" },
+        ],
+      },
+    },
+    {
+      id: "telehealth",
+      title: "Telemedicine & Claims Platform",
+      subtitle: "Customer-Facing Healthcare App",
+      tech: ["React Native", "Audio/Video Native Modules", "REST APIs"],
+      description:
+        "Engineered an end-to-end medical booking and claims verification platform with multi-step workflows.",
+      screenshots: [
+        { src: aiqaDoctor, alt: "Doctor profile with video and audio consultation booking" },
+        { src: aiqaLabTests, alt: "Diagnostics hub for booking lab tests with home sample collection" },
+        { src: aiqaPharmacy, alt: "Pharmacy ordering from a doctor's prescription" },
+        { src: aiqaSpecialists, alt: "Online doctor consultation across specialities" },
+      ],
+      phoneScreenMock: {
+        header: "CareConnect",
+        bgGradient: "from-blue-950 to-slate-900",
+        accentColor: "text-blue-400",
+        uiElements: [
+          { type: "activeCall", doctor: "Dr. Aris Sharma", status: "Connected (04:12)" },
+          { type: "claimStatus", id: "CLM-9021", status: "Documents Verified", progress: 100 },
+          { type: "quickActionGrid", items: ["Book Lab Test", "Coupon Applied"] },
+        ],
+      },
+    },
+    {
+      id: "crm",
+      title: "CRM Sales Management App",
+      subtitle: "Field Force Activity Tracker",
+      tech: ["React Native", "Live Location Tracking", "Deep Linking", "FCM"],
+      description:
+        "Developed a real-time lead and meeting management platform with background geo-fencing.",
+      phoneScreenMock: {
+        header: "SalesForce Pro",
+        bgGradient: "from-amber-950 to-slate-900",
+        accentColor: "text-amber-400",
+        uiElements: [
+          { type: "mapWidget", location: "On-Site Client Meeting", status: "Live Tracking Active" },
+          { type: "notificationBanner", title: "New Lead Assigned", time: "Just Now via Push" },
+          { type: "statRow", leads: "14 Active", meetings: "3 Today" },
+        ],
+      },
+    },
+    {
+      id: "ocr-vision",
+      title: "AI Vision & OCR Platform",
+      subtitle: "SAS Tech Hackathon Winner 2024",
+      tech: ["React.js", "Tailwind CSS", "Facial Recognition APIs"],
+      description:
+        "Won 1st place among 5+ teams by engineering a real-time document extraction and identity matching module.",
+      phoneScreenMock: {
+        header: "VisionOS Terminal",
+        bgGradient: "from-purple-950 to-slate-900",
+        accentColor: "text-purple-400",
+        uiElements: [
+          { type: "hackathonBadge", text: "🏆 1st Place Winner - SAS Tech 2024" },
+          { type: "ocrScanner", filename: "invoice_reseller_claim.pdf", accuracy: "99.4% Match Score" },
+          { type: "processingBar", status: "Extraction Complete" },
+        ],
+      },
+    },
+  ],
+};
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Design tokens                                                             */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const ACCENTS = {
+  aiqa: { hex: "#2dd4bf", rgb: "45,212,191" },
+  telehealth: { hex: "#60a5fa", rgb: "96,165,250" },
+  crm: { hex: "#fbbf24", rgb: "251,191,36" },
+  "ocr-vision": { hex: "#c084fc", rgb: "192,132,252" },
+};
+const alpha = (accent, a) => `rgba(${accent.rgb},${a})`;
+
+const EASE = [0.22, 1, 0.36, 1];
+const AUTOPLAY_MS = 5500;
+const SHOT_MS = 2800;
+const dwellFor = (project) => Math.max(AUTOPLAY_MS, (project.screenshots?.length ?? 0) * SHOT_MS);
+
+const SCREEN_ENTER = {
+  scale: { type: "spring", stiffness: 260, damping: 26, mass: 0.9 },
+  opacity: { duration: 0.45, ease: EASE },
+};
+
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+};
+const screenStagger = { hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.18 } } };
+const screenItem = {
+  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: EASE } },
+};
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Icons                                                                     */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const ICONS = {
+  activity: <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
+  arrowUpRight: <path d="M7 17 17 7M7 7h10v10" />,
+  bell: <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" />,
+  calendar: (
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </>
+  ),
+  chart: <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />,
+  chat: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />,
+  check: <path d="M20 6 9 17l-5-5" />,
+  chevronRight: <path d="m9 18 6-6-6-6" />,
+  file: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+    </>
+  ),
+  flask: <path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3M7 15h10" />,
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
+    </>
+  ),
+  home: <path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" />,
+  linkedin: (
+    <>
+      <rect x="2" y="2" width="20" height="20" rx="4" />
+      <path d="M7 10v7M7 7v.01M11 17v-7M15 17v-4a2 2 0 0 0-4 0" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-10 6L2 7" />
+    </>
+  ),
+  mic: (
+    <>
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4" />
+    </>
+  ),
+  phoneOff: <path d="M3 13.5c5-4.5 13-4.5 18 0l-2.2 2.6-3.6-1.2v-2.4a9 9 0 0 0-6.4 0v2.4l-3.6 1.2Z" />,
+  pin: (
+    <>
+      <path d="M20 10c0 5-8 12-8 12s-8-7-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  ),
+  smartphone: (
+    <>
+      <rect x="5" y="2" width="14" height="20" rx="2.5" />
+      <path d="M12 18h.01" />
+    </>
+  ),
+  sparkle: <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z" />,
+  tag: (
+    <>
+      <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z" />
+      <circle cx="7.5" cy="7.5" r="1" />
+    </>
+  ),
+  trophy: (
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="7" r="4" />
+      <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9" />
+    </>
+  ),
+  video: (
+    <>
+      <path d="m16 13 5.2 3.1a.5.5 0 0 0 .8-.4V8.3a.5.5 0 0 0-.8-.4L16 11" />
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+    </>
+  ),
+  zap: <path d="M13 2 3 14h9l-1 8 10-12h-9Z" />,
+};
+
+function Icon({ name, className = "h-4 w-4", strokeWidth = 1.8, style }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={style}
+      aria-hidden="true"
+    >
+      {ICONS[name]}
+    </svg>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Small primitives                                                          */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Counter({ to, duration = 1.4, delay = 0.35 }) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const controls = animate(0, to, { duration, delay, ease: EASE, onUpdate: (v) => setValue(Math.round(v)) });
+    return () => controls.stop();
+  }, [to, duration, delay]);
+  return value;
+}
+
+function useTicker(start) {
+  const [seconds, setSeconds] = useState(start);
+  useEffect(() => {
+    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return seconds;
+}
+
+const Card = ({ className = "", style, children }) => (
+  <div
+    className={`rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3.5 backdrop-blur-md ${className}`}
+    style={style}
+  >
+    {children}
+  </div>
+);
+
+const Eyebrow = ({ children, className = "" }) => (
+  <p className={`text-[9.5px] font-medium uppercase tracking-[0.16em] text-white/45 ${className}`}>{children}</p>
+);
+
+const PulseDot = ({ color, className = "h-1.5 w-1.5" }) => (
+  <span className={`relative inline-flex ${className}`}>
+    <span className="absolute inset-0 animate-ping rounded-full opacity-70" style={{ background: color }} />
+    <span className="relative inline-flex h-full w-full rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+  </span>
+);
+
+const Caret = ({ accent }) => (
+  <motion.span
+    className="ml-1 inline-block h-3.5 w-[7px] translate-y-[2px]"
+    style={{ background: accent.hex, boxShadow: `0 0 8px ${accent.hex}` }}
+    animate={{ opacity: [1, 0] }}
+    transition={{ duration: 0.7, repeat: Infinity, repeatType: "reverse" }}
+  />
+);
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Phone screen widgets                                                      */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function MetricCard({ el, accent }) {
+  const [num, ...unit] = el.value.split(" ");
+  const bars = [42, 68, 55, 81, 60, 92, 74];
+  const days = ["M", "T", "W", "T", "F", "S", "S"];
+  return (
+    <Card>
+      <div className="flex items-center justify-between">
+        <Eyebrow>{el.title}</Eyebrow>
+        <Icon name="activity" className="h-3.5 w-3.5" style={{ color: accent.hex }} />
+      </div>
+      <div className="mt-2.5 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[26px] font-semibold leading-none tracking-tight text-white">
+            {num} <span className="text-xs font-medium text-white/50">{unit.join(" ")}</span>
+          </p>
+          <p className="mt-2.5 flex items-center gap-1.5 text-[10px] text-white/55">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+            {el.sub}
+          </p>
+        </div>
+        <div className="flex gap-[4px]">
+          {bars.map((h, i) => {
+            const isToday = i === bars.length - 1;
+            return (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div className="flex h-11 items-end">
+                  <motion.span
+                    className="block w-[6px] origin-bottom rounded-full"
+                    style={{
+                      height: `${h}%`,
+                      background: isToday ? accent.hex : "rgba(255,255,255,0.16)",
+                      boxShadow: isToday ? `0 0 10px ${alpha(accent, 0.8)}` : "none",
+                    }}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    transition={{ delay: 0.35 + i * 0.05, duration: 0.6, ease: EASE }}
+                  />
+                </div>
+                <span className={`text-[7.5px] ${isToday ? "text-white/80" : "text-white/30"}`}>{days[i]}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ProgressRing({ el, accent }) {
+  const [label, status] = el.label.split(":").map((s) => s.trim());
+  const r = 40;
+  return (
+    <Card className="flex items-center gap-4">
+      <div className="relative h-[104px] w-[104px] shrink-0">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8" />
+          <circle cx="50" cy="50" r={r - 13} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="1 3" />
+          <motion.circle
+            cx="50"
+            cy="50"
+            r={r}
+            fill="none"
+            stroke={accent.hex}
+            strokeWidth="8"
+            strokeLinecap="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: el.percentage / 100 }}
+            transition={{ duration: 1.4, ease: EASE, delay: 0.35 }}
+            style={{ filter: `drop-shadow(0 0 5px ${alpha(accent, 0.9)})` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-[26px] font-semibold leading-none tracking-tight text-white">
+            <Counter to={el.percentage} />
+          </span>
+          <span className="mt-1 text-[8px] uppercase tracking-[0.2em] text-white/40">of 100</span>
+        </div>
+      </div>
+      <div className="min-w-0">
+        <Eyebrow>{label}</Eyebrow>
+        <p className="mt-1 text-lg font-semibold" style={{ color: accent.hex }}>
+          {status}
+        </p>
+        <p className="mt-1.5 text-[10px] leading-snug text-white/45">Scored from synced wearable data</p>
+      </div>
+    </Card>
+  );
+}
+
+function AiBubble({ el, accent }) {
+  const [sender, ...rest] = el.text.split(":");
+  const message = rest.join(":").trim();
+  const [typing, setTyping] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setTyping(false), 1900);
+    return () => clearTimeout(id);
+  }, []);
+
+  return (
+    <motion.div
+      animate={{ y: [0, -4, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      className="flex items-end gap-2"
+    >
+      <div
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full"
+        style={{
+          background: `linear-gradient(135deg, ${accent.hex}, ${alpha(accent, 0.45)})`,
+          boxShadow: `0 0 18px ${alpha(accent, 0.6)}`,
+        }}
+      >
+        <Icon name="sparkle" className="h-4 w-4 text-slate-950" strokeWidth={2.2} />
+      </div>
+      <div
+        className="min-w-0 flex-1 rounded-2xl rounded-bl-md border px-3 py-2.5 backdrop-blur-xl"
+        style={{ borderColor: alpha(accent, 0.3), background: "rgba(4,20,22,0.72)", boxShadow: `0 10px 30px -10px ${alpha(accent, 0.45)}` }}
+      >
+        <p className="text-[9px] font-semibold uppercase tracking-[0.16em]" style={{ color: accent.hex }}>
+          {sender}
+        </p>
+        <AnimatePresence mode="wait" initial={false}>
+          {typing ? (
+            <motion.div key="typing" exit={{ opacity: 0 }} className="flex gap-1 py-1.5">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="h-1.5 w-1.5 rounded-full bg-white/60"
+                  animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+                  transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.p
+              key="msg"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-0.5 text-[11.5px] leading-snug text-white/90"
+            >
+              {message}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+function ActiveCall({ el, accent }) {
+  const match = el.status.match(/^(.*?)\s*\((\d+):(\d+)\)/);
+  const label = match ? match[1] : el.status;
+  const seconds = useTicker(match ? Number(match[2]) * 60 + Number(match[3]) : 0);
+  const clock = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  const initials = el.doctor
+    .replace(/^Dr\.?\s*/, "")
+    .split(" ")
+    .map((w) => w[0])
+    .join("");
+
+  return (
+    <Card className="overflow-hidden p-0">
+      <div
+        className="relative grid h-[128px] place-items-center"
+        style={{ background: `radial-gradient(circle at 50% 45%, ${alpha(accent, 0.32)}, transparent 62%), linear-gradient(180deg,#0b1630,#060a14)` }}
+      >
+        <div className="relative">
+          {[0, 1].map((i) => (
+            <motion.span
+              key={i}
+              className="absolute inset-0 rounded-full border"
+              style={{ borderColor: alpha(accent, 0.6) }}
+              animate={{ scale: [1, 1.7], opacity: [0.6, 0] }}
+              transition={{ duration: 2.2, repeat: Infinity, delay: i * 1.1, ease: "easeOut" }}
+            />
+          ))}
+          <div
+            className="relative grid h-16 w-16 place-items-center rounded-full text-lg font-semibold text-white"
+            style={{ background: `linear-gradient(135deg, ${accent.hex}, #1e3a8a)`, boxShadow: `0 0 30px ${alpha(accent, 0.5)}` }}
+          >
+            {initials}
+          </div>
+        </div>
+        <div className="absolute right-2.5 top-2.5 grid h-14 w-10 place-items-center rounded-lg border border-white/15 bg-slate-800/80 text-white/40">
+          <Icon name="user" className="h-4 w-4" />
+        </div>
+        <span className="absolute left-2.5 top-2.5 rounded-md bg-black/40 px-1.5 py-0.5 font-mono text-[8.5px] tracking-wider text-white/70">
+          HD · VIDEO
+        </span>
+        <div className="absolute bottom-2.5 left-2.5 flex gap-1.5">
+          {["mic", "video"].map((n) => (
+            <span key={n} className="grid h-7 w-7 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
+              <Icon name={n} className="h-3.5 w-3.5" />
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 px-3.5 py-2.5">
+        <div className="min-w-0">
+          <p className="truncate text-[13px] font-semibold text-white">{el.doctor}</p>
+          <p className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[10.5px] text-emerald-300">
+            <PulseDot color="#34d399" />
+            {label} ({clock})
+          </p>
+        </div>
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-rose-500 text-white shadow-[0_0_14px_rgba(244,63,94,0.55)]">
+          <Icon name="phoneOff" className="h-4 w-4" />
+        </span>
+      </div>
+    </Card>
+  );
+}
+
+function ClaimStatus({ el, accent }) {
+  const steps = ["Submitted", "In Review", "Verified"];
+  return (
+    <Card>
+      <div className="flex items-center justify-between">
+        <Eyebrow>Claim Tracker</Eyebrow>
+        <span className="font-mono text-[10px] text-white/60">{el.id}</span>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
+          <Icon name="check" className="h-3 w-3" strokeWidth={2.6} />
+        </span>
+        <p className="text-[13px] font-semibold text-white">{el.status}</p>
+        <span className="ml-auto font-mono text-[11px]" style={{ color: accent.hex }}>
+          <Counter to={el.progress} />%
+        </span>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: `linear-gradient(90deg, ${alpha(accent, 0.45)}, ${accent.hex})`, boxShadow: `0 0 10px ${alpha(accent, 0.7)}` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${el.progress}%` }}
+          transition={{ duration: 1.3, delay: 0.4, ease: EASE }}
+        />
+      </div>
+      <div className="mt-2 flex justify-between">
+        {steps.map((s, i) => {
+          const reached = el.progress >= (i / (steps.length - 1)) * 100;
+          return (
+            <span key={s} className={`text-[8.5px] uppercase tracking-wider ${reached ? "text-white/70" : "text-white/30"}`}>
+              {s}
+            </span>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+const QUICK_ACTION_ICONS = { "Book Lab Test": "flask", "Coupon Applied": "tag" };
+
+function QuickActionGrid({ el, accent }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {el.items.map((item) => (
+        <Card key={item} className="flex items-center gap-2.5 p-3">
+          <span
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
+            style={{ background: alpha(accent, 0.14), color: accent.hex }}
+          >
+            <Icon name={QUICK_ACTION_ICONS[item] ?? "sparkle"} className="h-4 w-4" />
+          </span>
+          <span className="text-[11px] font-medium leading-tight text-white/85">{item}</span>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function MapWidget({ el, accent }) {
+  const cols = [
+    [8, 54],
+    [72, 41],
+    [123, 50],
+    [183, 55],
+  ];
+  const rows = [
+    [8, 40],
+    [59, 47],
+    [117, 37],
+  ];
+  const pin = { x: 148, y: 82 };
+
+  return (
+    <Card className="overflow-hidden p-0">
+      <div className="relative h-[160px]">
+        <svg viewBox="0 0 246 160" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+          <rect width="246" height="160" fill="#0f0c07" />
+          {rows.map(([y, h], ri) =>
+            cols.map(([x, w], ci) => (
+              <rect
+                key={`${ri}-${ci}`}
+                x={x}
+                y={y}
+                width={w}
+                height={h}
+                rx="4"
+                fill={ri === 1 && ci === 1 ? "rgba(52,211,153,0.09)" : "rgba(255,255,255,0.035)"}
+              />
+            ))
+          )}
+          <path d="M0 52H246M0 110H246M66 0V160M117 0V160M177 0V160" stroke="rgba(255,255,255,0.07)" strokeWidth="6" />
+          <circle
+            cx={pin.x}
+            cy={pin.y}
+            r="30"
+            fill={alpha(accent, 0.07)}
+            stroke={alpha(accent, 0.55)}
+            strokeWidth="1"
+            strokeDasharray="3 3"
+          />
+          <motion.path
+            d={`M66 156V110H117V${pin.y}H${pin.x}`}
+            fill="none"
+            stroke={accent.hex}
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.6, delay: 0.4, ease: "easeInOut" }}
+            style={{ filter: `drop-shadow(0 0 4px ${accent.hex})` }}
+          />
+          <circle cx="66" cy="156" r="3.5" fill="#fff" />
+          <motion.circle
+            cx={pin.x}
+            cy={pin.y}
+            fill={accent.hex}
+            initial={{ r: 5, opacity: 0.6 }}
+            animate={{ r: [5, 22], opacity: [0.6, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+          />
+          <circle cx={pin.x} cy={pin.y} r="5" fill={accent.hex} stroke="#fff" strokeWidth="2" />
+        </svg>
+        <span className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-[9.5px] font-medium text-white/85 backdrop-blur">
+          <PulseDot color={accent.hex} />
+          {el.status}
+        </span>
+      </div>
+      <div className="flex items-center gap-2.5 px-3.5 py-3">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl" style={{ background: alpha(accent, 0.14), color: accent.hex }}>
+          <Icon name="pin" className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-[12.5px] font-semibold text-white">{el.location}</p>
+          <p className="text-[10px] text-white/45">Inside geo-fence radius</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function NotificationBanner({ el, accent, project }) {
+  return (
+    <motion.div
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.9, type: "spring", stiffness: 320, damping: 24 }}
+      className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-neutral-900/75 p-3 shadow-2xl backdrop-blur-xl"
+    >
+      <motion.span
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-slate-950"
+        style={{ background: accent.hex, boxShadow: `0 0 16px ${alpha(accent, 0.55)}` }}
+        animate={{ rotate: [0, -14, 12, -8, 0] }}
+        transition={{ delay: 1.3, duration: 0.7 }}
+      >
+        <Icon name="bell" className="h-4 w-4" strokeWidth={2.2} />
+      </motion.span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-[9.5px] uppercase tracking-[0.14em] text-white/45">{project.phoneScreenMock.header}</p>
+          <p className="shrink-0 text-[9.5px] text-white/40">{el.time}</p>
+        </div>
+        <p className="mt-0.5 text-[12.5px] font-semibold text-white">{el.title}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+const STAT_ROW_ICONS = { leads: "users", meetings: "calendar" };
+
+function StatRow({ el, accent }) {
+  const entries = Object.entries(el).filter(([key]) => key !== "type");
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {entries.map(([key, raw]) => {
+        const [num, ...rest] = String(raw).split(" ");
+        return (
+          <Card key={key} className="p-3">
+            <div className="flex items-center justify-between">
+              <Eyebrow>{key}</Eyebrow>
+              <Icon name={STAT_ROW_ICONS[key] ?? "chart"} className="h-3.5 w-3.5 text-white/35" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-[26px] font-semibold leading-none tracking-tight text-white">
+                <Counter to={Number(num) || 0} duration={1} />
+              </span>
+              <span className="rounded-full px-1.5 py-0.5 text-[9px] font-medium" style={{ background: alpha(accent, 0.14), color: accent.hex }}>
+                {rest.join(" ")}
+              </span>
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function HackathonBadge({ el, accent }) {
+  const spaceAt = el.text.indexOf(" ");
+  const emoji = el.text.slice(0, spaceAt);
+  const [title, event] = el.text.slice(spaceAt + 1).split(" - ");
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl p-px"
+      style={{ background: `linear-gradient(120deg, ${alpha(accent, 0.8)}, rgba(255,255,255,0.08), ${alpha(accent, 0.8)})` }}
+    >
+      <div className="relative flex items-center gap-3 overflow-hidden rounded-[15px] bg-[#130a1d] px-3.5 py-3">
+        <motion.span
+          className="text-2xl"
+          animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 1.2, delay: 0.6, repeat: Infinity, repeatDelay: 2.4 }}
+        >
+          {emoji}
+        </motion.span>
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-white">{title}</p>
+          <p className="text-[9.5px] uppercase tracking-[0.16em]" style={{ color: accent.hex }}>
+            {event}
+          </p>
+        </div>
+        <motion.span
+          className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+          initial={{ x: "-150%" }}
+          animate={{ x: "400%" }}
+          transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.8, ease: "easeInOut" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function OcrScanner({ el, accent }) {
+  const [score, ...scoreLabel] = el.accuracy.split(" ");
+  const box = (className, delay) => (
+    <motion.span
+      className={`absolute rounded-md border-[1.5px] ${className}`}
+      style={{ borderColor: accent.hex, background: alpha(accent, 0.1), boxShadow: `0 0 10px ${alpha(accent, 0.5)}` }}
+      initial={{ opacity: 0, scale: 1.15 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.4, ease: EASE }}
+    />
+  );
+
+  return (
+    <Card className="p-3">
+      <div className="relative h-[150px] overflow-hidden rounded-xl bg-[#ece8e1] p-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="h-2 w-14 rounded-sm bg-slate-800" />
+            <div className="mt-1.5 h-1.5 w-20 rounded-sm bg-slate-400/70" />
+            <div className="mt-1 h-1.5 w-16 rounded-sm bg-slate-400/50" />
+          </div>
+          <div className="relative h-11 w-9 overflow-hidden rounded-md bg-slate-300">
+            <div className="absolute left-1/2 top-2 h-4 w-4 -translate-x-1/2 rounded-full bg-slate-500" />
+            <div className="absolute -bottom-2 left-1/2 h-5 w-8 -translate-x-1/2 rounded-full bg-slate-500" />
+          </div>
+        </div>
+        <div className="mt-3.5 space-y-1.5">
+          {[92, 78, 85, 60].map((w, i) => (
+            <div key={i} className="h-1.5 rounded-sm bg-slate-400/45" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between">
+          <div className="h-2 w-16 rounded-sm bg-slate-400/60" />
+          <div className="h-2.5 w-12 rounded-sm bg-slate-800" />
+        </div>
+
+        {box("left-2 top-2 h-[34px] w-[92px]", 0.9)}
+        {box("right-2 top-2 h-[52px] w-[44px]", 1.2)}
+        {box("bottom-2 right-2 h-[18px] w-[56px]", 1.5)}
+
+        <motion.div
+          className="pointer-events-none absolute inset-x-0 h-10"
+          style={{ background: `linear-gradient(180deg, transparent, ${alpha(accent, 0.28)})`, borderBottom: `2px solid ${accent.hex}`, boxShadow: `0 6px 16px ${alpha(accent, 0.6)}` }}
+          animate={{ top: ["-25%", "80%"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+        />
+        {["left-1 top-1 border-l-2 border-t-2", "right-1 top-1 border-r-2 border-t-2", "bottom-1 left-1 border-b-2 border-l-2", "bottom-1 right-1 border-b-2 border-r-2"].map((c) => (
+          <span key={c} className={`absolute h-4 w-4 rounded-[3px] ${c}`} style={{ borderColor: accent.hex }} />
+        ))}
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5 text-white/60">
+          <Icon name="file" className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate font-mono text-[10px]">{el.filename}</span>
+        </div>
+        <span className="shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] font-medium" style={{ background: alpha(accent, 0.15), color: accent.hex }}>
+          {score} <span className="text-white/50">{scoreLabel.join(" ")}</span>
+        </span>
+      </div>
+    </Card>
+  );
+}
+
+function ProcessingBar({ el, accent }) {
+  const [done, setDone] = useState(false);
+  return (
+    <Card>
+      <div className="flex items-center gap-2">
+        <span className="grid h-6 w-6 place-items-center rounded-lg" style={{ background: alpha(accent, 0.15), color: accent.hex }}>
+          <Icon name={done ? "check" : "zap"} className="h-3.5 w-3.5" strokeWidth={2.2} />
+        </span>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={done ? "done" : "busy"}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className={`text-[12px] font-semibold ${done ? "text-white" : "text-white/70"}`}
+          >
+            {done ? el.status : "Extracting fields…"}
+          </motion.p>
+        </AnimatePresence>
+        <span className="ml-auto font-mono text-[11px]" style={{ color: accent.hex }}>
+          <Counter to={100} duration={2} delay={0.5} />%
+        </span>
+      </div>
+      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: `linear-gradient(90deg, ${alpha(accent, 0.4)}, ${accent.hex})`, boxShadow: `0 0 10px ${alpha(accent, 0.7)}` }}
+          initial={{ width: 0 }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 2, delay: 0.5, ease: EASE }}
+          onAnimationComplete={() => setDone(true)}
+        />
+      </div>
+    </Card>
+  );
+}
+
+const WIDGETS = {
+  metricCard: MetricCard,
+  progressRing: ProgressRing,
+  aiBubble: AiBubble,
+  activeCall: ActiveCall,
+  claimStatus: ClaimStatus,
+  quickActionGrid: QuickActionGrid,
+  mapWidget: MapWidget,
+  notificationBanner: NotificationBanner,
+  statRow: StatRow,
+  hackathonBadge: HackathonBadge,
+  ocrScanner: OcrScanner,
+  processingBar: ProcessingBar,
+};
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* iPhone mockup                                                             */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const TODAY = new Date().toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+
+function AppScreen({ project, accent }) {
+  const mock = project.phoneScreenMock;
+  return (
+    <div className="flex h-full flex-col px-4 pt-12">
+      <header className="flex items-center justify-between py-3">
+        <div>
+          <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/40">{TODAY}</p>
+          <h3 className="mt-0.5 text-[19px] font-semibold tracking-tight text-white">{mock.header}</h3>
+        </div>
+        <span
+          className="grid h-9 w-9 place-items-center rounded-full border text-[11px] font-semibold text-white"
+          style={{ borderColor: alpha(accent, 0.5), background: alpha(accent, 0.12), boxShadow: `0 0 14px ${alpha(accent, 0.3)}` }}
+        >
+          RS
+        </span>
+      </header>
+
+      <motion.div variants={screenStagger} initial="hidden" animate="show" className="flex flex-1 flex-col gap-3">
+        {mock.uiElements.map((el, i) => {
+          const Widget = WIDGETS[el.type];
+          if (!Widget) return null;
+          return (
+            <motion.div key={`${el.type}-${i}`} variants={screenItem} className={el.type === "aiBubble" ? "mt-auto" : ""}>
+              <Widget el={el} accent={accent} project={project} />
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      <nav className="mb-6 mt-3 flex items-center justify-around rounded-2xl border border-white/[0.06] bg-black/30 px-2 py-2 backdrop-blur-xl">
+        {["home", "chart", "chat", "user"].map((name, i) => (
+          <span
+            key={name}
+            className="grid h-8 w-10 place-items-center rounded-xl"
+            style={i === 0 ? { color: accent.hex, background: alpha(accent, 0.12) } : { color: "rgba(255,255,255,0.35)" }}
+          >
+            <Icon name={name} className="h-[18px] w-[18px]" />
+          </span>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function StatusBar() {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-30 grid h-12 grid-cols-[1fr_104px_1fr] items-center pt-1 text-[13px] font-semibold text-white">
+      <span className="text-center">9:41</span>
+      <span />
+      <span className="flex items-center justify-center gap-1.5">
+        <svg viewBox="0 0 18 12" className="h-[10px] w-[16px]" fill="currentColor" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => (
+            <rect key={i} x={i * 4.7} y={9 - i * 3} width="3" height={3 + i * 3} rx="0.8" />
+          ))}
+        </svg>
+        <svg viewBox="0 0 16 12" className="h-[10px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+          <path d="M1 4.2a10.5 10.5 0 0 1 14 0M3.5 7a6.5 6.5 0 0 1 9 0" />
+          <circle cx="8" cy="10" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+        <span className="relative flex h-[11px] w-[23px] items-center rounded-[3.5px] border border-white/50 p-[1.5px]">
+          <span className="h-full w-[78%] rounded-[1.5px] bg-white" />
+          <span className="absolute -right-[3px] top-1/2 h-1 w-[1.5px] -translate-y-1/2 rounded-r bg-white/50" />
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function DynamicIsland({ project, accent }) {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    setExpanded(true);
+    const id = setTimeout(() => setExpanded(false), 1500);
+    return () => clearTimeout(id);
+  }, [project.id]);
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-[11px] z-40 flex justify-center">
+      <motion.div
+        className="flex items-center justify-between overflow-hidden rounded-full bg-black px-3"
+        animate={{ width: expanded ? 200 : 96, height: expanded ? 34 : 28 }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+      >
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              className="flex w-full items-center justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { delay: 0.12 } }}
+              exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            >
+              <span className="flex items-center gap-1.5 text-[10px] font-semibold text-white">
+                <span className="h-2 w-2 rounded-full" style={{ background: accent.hex, boxShadow: `0 0 8px ${accent.hex}` }} />
+                {project.phoneScreenMock.header}
+              </span>
+              <span className="font-mono text-[9px]" style={{ color: accent.hex }}>
+                live
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+}
+
+function ScreenSkeleton({ accent }) {
+  return (
+    <motion.div
+      aria-hidden
+      className="absolute inset-0 overflow-hidden bg-[#0b0d12]"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+    >
+      <div className="flex h-full animate-pulse flex-col gap-3 px-5 pt-16">
+        <div className="h-2.5 w-20 rounded-full bg-white/[0.07]" />
+        <div className="h-6 w-40 rounded-lg bg-white/[0.09]" />
+        <div className="mt-2 h-36 rounded-2xl bg-white/[0.06]" />
+        <div className="grid grid-cols-4 gap-2.5">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="aspect-square rounded-xl bg-white/[0.06]" />
+          ))}
+        </div>
+        <div className="h-24 rounded-2xl bg-white/[0.05]" />
+        <div className="mb-9 mt-auto h-12 rounded-2xl bg-white/[0.05]" />
+      </div>
+      <motion.div
+        className="absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12"
+        style={{ background: `linear-gradient(90deg, transparent, ${alpha(accent, 0.08)}, rgba(255,255,255,0.06), transparent)` }}
+        animate={{ x: ["0%", "400%"] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </motion.div>
+  );
+}
+
+function Screenshot({ shot, accent }) {
+  const [loaded, setLoaded] = useState(false);
+  // Cached images can finish before React attaches onLoad — check on mount too.
+  const imgRef = useCallback((node) => {
+    if (node?.complete && node.naturalWidth > 0) setLoaded(true);
+  }, []);
+
+  return (
+    <motion.div className="absolute inset-0" exit={{ opacity: 0 }} transition={{ duration: 0.45, ease: EASE }}>
+      <AnimatePresence>{!loaded && <ScreenSkeleton key="skeleton" accent={accent} />}</AnimatePresence>
+      <motion.img
+        ref={imgRef}
+        src={shot.src}
+        alt={shot.alt}
+        draggable={false}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className="h-full w-full select-none object-cover"
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
+        transition={SCREEN_ENTER}
+      />
+    </motion.div>
+  );
+}
+
+function ScreenshotViewport({ project, accent, index, onNext }) {
+  const shots = project.screenshots;
+
+  useEffect(() => {
+    shots.forEach(({ src }) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [shots]);
+
+  return (
+    <button
+      type="button"
+      onClick={onNext}
+      aria-label={`${project.title}: screenshot ${index + 1} of ${shots.length}. Show next`}
+      className="absolute inset-0 cursor-pointer outline-none"
+    >
+      <AnimatePresence initial={false}>
+        <Screenshot key={shots[index].src} shot={shots[index]} accent={accent} />
+      </AnimatePresence>
+    </button>
+  );
+}
+
+function IPhone({ project, accent, shotIndex, onNextShot }) {
+  const hasShots = project.screenshots?.length > 0;
+  return (
+    <div
+      className="relative h-[640px] w-[300px] rounded-[3.25rem] p-[11px]"
+      style={{
+        background: "linear-gradient(145deg,#3b3e46 0%,#1b1d22 28%,#0e0f12 62%,#2d3037 100%)",
+        boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.09), 0 0 0 1px rgba(0,0,0,0.7), 0 50px 100px -30px rgba(0,0,0,0.95), 0 0 90px -20px ${alpha(accent, 0.5)}`,
+        transition: "box-shadow 0.8s ease",
+      }}
+    >
+      {/* Hardware buttons */}
+      <span className="absolute -left-[3px] top-[112px] h-7 w-[3px] rounded-l-sm bg-[#2a2d34]" />
+      <span className="absolute -left-[3px] top-[164px] h-12 w-[3px] rounded-l-sm bg-[#2a2d34]" />
+      <span className="absolute -left-[3px] top-[224px] h-12 w-[3px] rounded-l-sm bg-[#2a2d34]" />
+      <span className="absolute -right-[3px] top-[180px] h-20 w-[3px] rounded-r-sm bg-[#2a2d34]" />
+
+      <div className="relative h-full w-full overflow-hidden rounded-[2.6rem] bg-black shadow-[0_0_0_2px_#000]">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={project.id}
+            className={`absolute inset-0 ${hasShots ? "bg-[#0b0d12]" : `bg-gradient-to-b ${project.phoneScreenMock.bgGradient}`}`}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={SCREEN_ENTER}
+          >
+            {hasShots ? (
+              <ScreenshotViewport project={project} accent={accent} index={shotIndex} onNext={onNextShot} />
+            ) : (
+              <>
+                <div
+                  className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full blur-3xl"
+                  style={{ background: alpha(accent, 0.22) }}
+                />
+                <AppScreen project={project} accent={accent} />
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        <StatusBar />
+        <DynamicIsland project={project} accent={accent} />
+        <span className="pointer-events-none absolute bottom-2 left-1/2 z-30 h-[5px] w-28 -translate-x-1/2 rounded-full bg-white/70" />
+        <div className="pointer-events-none absolute inset-0 z-30 rounded-[2.6rem] bg-gradient-to-tr from-transparent via-transparent to-white/[0.06]" />
+      </div>
+    </div>
+  );
+}
+
+function PhoneStage({ project, accent, projects, activeId, autoplay, onSelect }) {
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [7, -7]), { stiffness: 140, damping: 18 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-9, 9]), { stiffness: 140, damping: 18 });
+
+  const handleMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const reset = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
+  // Screenshot carousel: index is scoped to the active project, so switching projects restarts at 0.
+  const shots = project.screenshots ?? [];
+  const [shotState, setShotState] = useState({ id: project.id, index: 0 });
+  const shotIndex = shotState.id === project.id ? shotState.index : 0;
+  const nextShot = () => setShotState({ id: project.id, index: (shotIndex + 1) % shots.length });
+
+  useEffect(() => {
+    if (shots.length < 2) return;
+    const id = setTimeout(() => setShotState({ id: project.id, index: (shotIndex + 1) % shots.length }), SHOT_MS);
+    return () => clearTimeout(id);
+  }, [project.id, shotIndex, shots.length]);
+
+  return (
+    <div className="relative flex flex-col items-center py-4" onMouseMove={handleMove} onMouseLeave={reset}>
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px]"
+        animate={{ backgroundColor: alpha(accent, 0.28) }}
+        transition={{ duration: 1 }}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 1, ease: EASE, delay: 0.2 }}
+      >
+        <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+          <motion.div style={{ rotateX, rotateY, transformPerspective: 1200 }}>
+            <IPhone project={project} accent={accent} shotIndex={shotIndex} onNextShot={nextShot} />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      <div className="relative mt-8 flex items-center gap-2" role="tablist" aria-label="Preview project">
+        {projects.map((p) => {
+          const isActive = p.id === activeId;
+          const a = ACCENTS[p.id];
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-label={`Preview ${p.title}`}
+              onClick={() => onSelect(p.id)}
+              className="relative h-1.5 cursor-pointer overflow-hidden rounded-full bg-white/10 transition-[width] duration-500 hover:bg-white/20"
+              style={{ width: isActive ? 44 : 14 }}
+            >
+              {isActive && (
+                <motion.span
+                  key={`${p.id}-${autoplay}`}
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{ background: a.hex, boxShadow: `0 0 10px ${a.hex}` }}
+                  initial={{ width: autoplay ? "0%" : "100%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: autoplay ? dwellFor(p) / 1000 : 0, ease: "linear" }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="relative mt-3 flex items-center gap-2 font-mono text-[11px] text-slate-500">
+        {autoplay ? (
+          "auto-preview · hover a project to take control"
+        ) : (
+          <>
+            previewing <span style={{ color: accent.hex }}>./{project.id}</span>
+          </>
+        )}
+        {shots.length > 1 && (
+          <span className="flex items-center gap-1" aria-label={`Screenshot ${shotIndex + 1} of ${shots.length}`}>
+            <span className="text-slate-700">·</span>
+            {shots.map((shot, i) => (
+              <span
+                key={shot.src}
+                className="h-1 rounded-full transition-all duration-500"
+                style={{ width: i === shotIndex ? 10 : 4, background: i === shotIndex ? accent.hex : "rgba(255,255,255,0.2)" }}
+              />
+            ))}
+          </span>
+        )}
+      </p>
+      <p className="relative mt-5 max-w-[320px] text-center font-mono text-[11px] leading-relaxed text-slate-500">
+        <span className="text-slate-400">Disclaimer:</span> Screenshots reflect live production systems engineered and
+        shipped during my professional tenure at Eleven Bay / SAS Techstudio. Trademarks belong to the respective brand
+        owners.
+      </p>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Left column                                                               */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function ConsoleBar({ activeId, accent }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: EASE }}
+      className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2.5 font-mono text-[11px] text-slate-500 backdrop-blur-md"
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex shrink-0 gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        </div>
+        <span className="truncate">
+          riya@portfolio<span className="text-slate-700">:</span>
+          <span className="text-slate-400">~/projects/</span>
+          <span style={{ color: accent.hex }} className="transition-colors duration-500">
+            {activeId}
+          </span>
+        </span>
+      </div>
+      <span className="hidden shrink-0 items-center gap-2 sm:flex">
+        <PulseDot color="#34d399" />
+        3+ yrs · shipping
+      </span>
+    </motion.div>
+  );
+}
+
+function StatCard({ stat }) {
+  const [main, ...suffix] = stat.value.split(" ");
+  return (
+    <motion.div
+      variants={fadeUp}
+      whileHover={{ y: -3 }}
+      className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3.5 transition-colors hover:border-white/[0.14] hover:bg-white/[0.035] sm:p-4"
+    >
+      <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/[0.04] blur-2xl transition group-hover:bg-white/[0.08]" />
+      <Icon name={stat.icon} className="h-4 w-4 text-slate-500 transition-colors group-hover:text-slate-200" />
+      <p className="mt-4 flex items-baseline gap-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+        {main}
+        {suffix.length > 0 && <span className="text-sm font-medium text-slate-400 sm:text-base">{suffix.join(" ")}</span>}
+      </p>
+      <p className="mt-1 text-[11px] leading-snug text-slate-500 sm:text-xs">{stat.label}</p>
+    </motion.div>
+  );
+}
+
+function Intro({ accent }) {
+  const { developer } = PROFILE;
+  return (
+    <motion.section variants={stagger} initial="hidden" animate="show">
+      <motion.p variants={fadeUp} className="font-mono text-xs text-slate-500">
+        <span style={{ color: accent.hex }} className="transition-colors duration-500">
+          ➜
+        </span>{" "}
+        <span className="text-slate-400">~</span> whoami
+        <Caret accent={accent} />
+      </motion.p>
+
+      <motion.h1 variants={fadeUp} className="mt-5 text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
+        {developer.name}
+      </motion.h1>
+      <motion.p
+        variants={fadeUp}
+        className="mt-3 bg-gradient-to-r from-white via-slate-300 to-slate-500 bg-clip-text text-xl font-medium tracking-tight text-transparent sm:text-2xl"
+      >
+        {developer.title}
+      </motion.p>
+      <motion.p variants={fadeUp} className="mt-6 max-w-xl text-[15px] leading-relaxed text-slate-400">
+        {developer.bio}
+      </motion.p>
+
+      <motion.div variants={fadeUp} className="mt-7 flex flex-wrap gap-3">
+        <a
+          href={`mailto:${developer.contact.email}`}
+          className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:shadow-[0_0_30px_rgba(255,255,255,0.25)]"
+        >
+          <Icon name="mail" className="h-4 w-4" />
+          Get in touch
+          <Icon name="arrowUpRight" className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </a>
+        <a
+          href={developer.contact.linkedin}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-slate-200 transition hover:border-white/25 hover:bg-white/[0.06]"
+        >
+          <Icon name="linkedin" className="h-4 w-4" />
+          LinkedIn
+        </a>
+      </motion.div>
+
+      <motion.div variants={stagger} className="mt-10 grid grid-cols-3 gap-2.5 sm:gap-3">
+        {developer.stats.map((stat) => (
+          <StatCard key={stat.label} stat={stat} />
+        ))}
+      </motion.div>
+    </motion.section>
+  );
+}
+
+function ProjectRow({ project, index, active, onSelect }) {
+  const accent = ACCENTS[project.id];
+  const ref = useRef(null);
+
+  const trackSpotlight = (e) => {
+    const rect = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty("--x", `${e.clientX - rect.left}px`);
+    ref.current.style.setProperty("--y", `${e.clientY - rect.top}px`);
+  };
+
+  return (
+    <motion.li variants={fadeUp}>
+      <button
+        ref={ref}
+        type="button"
+        aria-pressed={active}
+        onMouseEnter={() => onSelect(project.id)}
+        onFocus={() => onSelect(project.id)}
+        onClick={() => onSelect(project.id)}
+        onMouseMove={trackSpotlight}
+        className="group relative w-full cursor-pointer overflow-hidden rounded-2xl border p-5 text-left outline-none transition-[border-color,background,box-shadow] duration-500 focus-visible:ring-2 focus-visible:ring-white/30"
+        style={{
+          borderColor: active ? alpha(accent, 0.35) : "rgba(255,255,255,0.06)",
+          background: active
+            ? `linear-gradient(135deg, ${alpha(accent, 0.09)}, rgba(255,255,255,0.012) 60%)`
+            : "rgba(255,255,255,0.012)",
+          boxShadow: active ? `0 24px 60px -32px ${alpha(accent, 0.7)}` : "none",
+        }}
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: `radial-gradient(260px circle at var(--x) var(--y), ${alpha(accent, 0.12)}, transparent 65%)` }}
+        />
+        {active && (
+          <motion.span
+            layoutId="active-rail"
+            className="absolute bottom-5 left-0 top-5 w-[2px] rounded-full"
+            style={{ background: accent.hex, boxShadow: `0 0 12px ${accent.hex}` }}
+            transition={{ type: "spring", stiffness: 400, damping: 34 }}
+          />
+        )}
+
+        <div className="relative flex items-start gap-4">
+          <span
+            className="pt-1 font-mono text-xs transition-colors duration-500"
+            style={{ color: active ? accent.hex : "rgb(71,85,105)" }}
+          >
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-base font-semibold tracking-tight text-white sm:text-lg">{project.title}</h3>
+              <Icon
+                name="arrowUpRight"
+                className={`h-4 w-4 shrink-0 transition-all duration-300 ${active ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0 group-hover:opacity-60"}`}
+                style={{ color: accent.hex }}
+              />
+            </div>
+            <p className={`mt-1 font-mono text-[11px] uppercase tracking-[0.14em] ${project.phoneScreenMock.accentColor} ${active ? "opacity-100" : "opacity-70"}`}>
+              {project.subtitle}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">{project.description}</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {project.tech.map((t) => (
+                <span
+                  key={t}
+                  className="rounded-md border px-2 py-0.5 font-mono text-[10.5px] transition-colors duration-500"
+                  style={{
+                    borderColor: active ? alpha(accent, 0.25) : "rgba(255,255,255,0.07)",
+                    color: active ? "rgb(226,232,240)" : "rgb(148,163,184)",
+                    background: active ? alpha(accent, 0.06) : "transparent",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </button>
+    </motion.li>
+  );
+}
+
+function Projects({ activeId, accent, onSelect }) {
+  const { developer, projects } = PROFILE;
+  return (
+    <section>
+      <div className="flex items-end justify-between gap-4">
+        <p className="font-mono text-xs text-slate-500">
+          <span style={{ color: accent.hex }} className="transition-colors duration-500">
+            ➜
+          </span>{" "}
+          <span className="text-slate-400">~</span> ls ./shipped{" "}
+          <span className="text-slate-600">--preview</span>
+        </p>
+        <p className="font-mono text-[11px] text-slate-600">
+          <span className="hidden lg:inline">hover to preview →</span>
+          <span className="lg:hidden">tap to preview ↑</span>
+        </p>
+      </div>
+
+      <motion.ul variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} className="mt-4 space-y-3">
+        {projects.map((project, i) => (
+          <ProjectRow key={project.id} project={project} index={i} active={project.id === activeId} onSelect={onSelect} />
+        ))}
+      </motion.ul>
+
+      <div className="mt-12 rounded-2xl border border-white/[0.06] bg-white/[0.015] p-5 font-mono text-xs">
+        <p className="text-slate-500">
+          <span style={{ color: accent.hex }}>➜</span> <span className="text-slate-400">~</span> contact --open
+        </p>
+        <div className="mt-3 space-y-1.5">
+          <a href={`mailto:${developer.contact.email}`} className="group flex gap-3 text-slate-500 transition-colors hover:text-slate-300">
+            <span className="w-16 text-slate-600">email</span>
+            <span className="text-slate-200 underline-offset-4 group-hover:underline">{developer.contact.email}</span>
+          </a>
+          <a href={developer.contact.linkedin} target="_blank" rel="noreferrer" className="group flex gap-3 text-slate-500 transition-colors hover:text-slate-300">
+            <span className="w-16 text-slate-600">linkedin</span>
+            <span className="text-slate-200 underline-offset-4 group-hover:underline">
+              {developer.contact.linkedin.replace(/^https?:\/\//, "")}
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <footer className="mt-8 font-mono text-[11px] text-slate-600">
+        © {new Date().getFullYear()} {developer.name} · React · Tailwind CSS · Framer Motion
+      </footer>
+    </section>
+  );
+}
+
+function Backdrop({ accent }) {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%)",
+        }}
+      />
+      <motion.div
+        className="absolute -right-40 top-1/4 h-[560px] w-[560px] rounded-full blur-[150px]"
+        animate={{ backgroundColor: alpha(accent, 0.16) }}
+        transition={{ duration: 1.2 }}
+      />
+      <div className="absolute -left-48 -top-48 h-[520px] w-[520px] rounded-full bg-indigo-500/10 blur-[150px]" />
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Scroll climber                                                            */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const TRAIL = { from: "#2dd4bf", to: "#3b82f6", rgb: "45,212,191" };
+const HAIR = "#fda4af";
+const SKIN = "#e2e8f0";
+// Projects run newest → oldest, so the top of the page is the summit (the present)
+// and scrolling down walks her back through earlier work.
+const SUMMIT_UNTIL = 0.04;
+const CLIMB_CYCLES = 14;
+
+// Centre of the 4rem column gap: wrapper is max-w-7xl with lg:px-10, columns are 1.1fr / 0.9fr.
+const GUTTER_CENTER = "calc(50% - min(100%, 80rem) / 2 + 4.5rem + (min(100%, 80rem) - 9rem) * 0.55)";
+
+// Layout of the rail, in px from the top of the viewport (clears the console bar at scroll 0).
+const PEAK_TOP = 124;
+const PEAK_H = 28;
+const APEX_Y = PEAK_TOP + 2;
+const TRACK_TOP = PEAK_TOP + PEAK_H;
+
+const glow = (a) => `drop-shadow(0 0 6px rgba(${TRAIL.rgb},${a}))`;
+
+const legPath = (hipX, kneeX, footX, footY) => `M${hipX} 27 L${kneeX} ${(27 + footY) / 2 - 1} L${footX} ${footY}`;
+
+function useLimbs(phase) {
+  const s = useTransform(phase, Math.sin);
+  const leftLeg = useTransform(s, (v) => legPath(14.5, 10, 15, 42 + 3 * v));
+  const rightLeg = useTransform(s, (v) => legPath(17.5, 22, 17, 42 - 3 * v));
+  return {
+    s,
+    leftLeg,
+    rightLeg,
+    sway: useTransform(phase, (v) => Math.sin(v / 2) * 4),
+    ponytail: useTransform(phase, (v) => {
+      const swing = Math.sin(v / 2) * 2;
+      return `M18.6 6.8 Q${22 + swing} 9 ${20.5 + swing} 14.5`;
+    }),
+  };
+}
+
+/** Scrolling up: back to the viewer, backpack on, reaching for the summit. */
+function ClimbingFigure({ phase }) {
+  const { s, leftLeg, rightLeg, sway, ponytail } = useLimbs(phase);
+  const leftArm = useTransform(s, (v) => {
+    const y = 6 - 4 * v;
+    return `M13.5 15 Q9.5 ${(15 + y) / 2} 15 ${y}`;
+  });
+  const rightArm = useTransform(s, (v) => {
+    const y = 6 + 4 * v;
+    return `M18.5 15 Q22.5 ${(15 + y) / 2} 17 ${y}`;
+  });
+
+  return (
+    <motion.svg viewBox="0 0 32 48" className="h-12 w-8 overflow-visible" style={{ rotate: sway, originY: 0.1, filter: glow(0.55) }}>
+      <g fill="none" stroke={SKIN} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <motion.path d={leftLeg} />
+        <motion.path d={rightLeg} />
+        <path d="M16 13V27" />
+        <motion.path d={leftArm} />
+        <motion.path d={rightArm} />
+      </g>
+      <rect x="12.5" y="14.5" width="7" height="9" rx="2" fill={TRAIL.from} />
+      <circle cx="16" cy="9" r="3.6" fill={SKIN} />
+      <path d="M12.6 8.6 Q16 4 19.4 8.6" fill="none" stroke={HAIR} strokeWidth="2.2" strokeLinecap="round" />
+      <motion.path d={ponytail} fill="none" stroke={HAIR} strokeWidth="2.2" strokeLinecap="round" />
+    </motion.svg>
+  );
+}
+
+/** Scrolling down: turned to face the viewer, easing down while gazing back up at the peak. */
+function ReminiscingFigure({ phase }) {
+  const { s, leftLeg, rightLeg, sway, ponytail } = useLimbs(phase);
+  const leftArm = useTransform(s, (v) => `M13.5 15 Q11.5 ${9 + v} 15 ${3 + 1.5 * v}`);
+  const rightArm = useTransform(s, (v) => `M18.5 15 Q20.5 ${9 - v} 17 ${3 - 1.5 * v}`);
+
+  return (
+    <div className="relative">
+      <motion.svg viewBox="0 0 32 48" className="h-12 w-8 overflow-visible" style={{ rotate: sway, originY: 0.1, filter: glow(0.45) }}>
+        <g fill="none" stroke={SKIN} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <motion.path d={leftLeg} />
+          <motion.path d={rightLeg} />
+          <path d="M16 13.5V27" />
+          <motion.path d={leftArm} />
+          <motion.path d={rightArm} />
+        </g>
+        <path d="M14 14.5 L14.6 22M18 14.5 L17.4 22" stroke={TRAIL.from} strokeWidth="1.4" strokeLinecap="round" />
+        <motion.path d={ponytail} fill="none" stroke={HAIR} strokeWidth="2.2" strokeLinecap="round" />
+        <circle cx="16" cy="10" r="3.6" fill={SKIN} />
+        <path d="M12.6 9.4 Q16 4.8 19.4 9.4" fill="none" stroke={HAIR} strokeWidth="2.2" strokeLinecap="round" />
+        {/* Eyes set high — she's looking back up at where she's been. */}
+        <circle cx="14.8" cy="9.4" r="0.6" fill="#0f172a" />
+        <circle cx="17.2" cy="9.4" r="0.6" fill="#0f172a" />
+      </motion.svg>
+
+      {/* Thought bubble */}
+      <motion.span
+        className="absolute -left-3 -top-3 flex items-end gap-[2px]"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.15, duration: 0.3 }}
+      >
+        <motion.span
+          className="grid h-3.5 w-3.5 place-items-center rounded-full border border-teal-300/40 bg-slate-900/80 text-[7px] leading-none text-teal-200"
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          ✦
+        </motion.span>
+        <span className="mb-[1px] h-1 w-1 rounded-full bg-teal-300/50" />
+      </motion.span>
+    </div>
+  );
+}
+
+/** Top of the page: planted flag, hand shading her eyes, looking ahead. */
+function SummitFigure() {
+  return (
+    <svg viewBox="0 0 40 44" className="h-11 w-10 overflow-visible" style={{ filter: glow(0.6) }}>
+      <path d="M31 5V44" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round" />
+      <motion.path
+        fill={TRAIL.from}
+        d="M31 5 Q35 3.5 39 7 Q35 9 31 11Z"
+        style={{ originX: "31px", originY: "8px", transformBox: "view-box" }}
+        animate={{ skewY: [0, 8, 0], scaleX: [1, 0.86, 1] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <g fill="none" stroke={SKIN} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 30 L16 43.5M20 30 L24 43.5" />
+        <path d="M20 16V30" />
+        <path d="M20 19 L26 22 L31 20" />
+        <path d="M19.5 18.5 L14.5 15 L22.5 10.5" />
+      </g>
+      <rect x="14" y="16.5" width="5" height="9" rx="1.8" fill={TRAIL.from} />
+      <motion.path
+        fill="none"
+        stroke={HAIR}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        d="M18 9.5 Q13 10 12.5 15"
+        style={{ originX: "18px", originY: "9.5px", transformBox: "view-box" }}
+        animate={{ rotate: [0, 10, 0] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <circle cx="20.5" cy="11.5" r="3.5" fill={SKIN} />
+      <path d="M17.2 11 Q19.5 6.8 23.8 10" fill="none" stroke={HAIR} strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SummitBurst() {
+  return (
+    <span className="absolute left-1/2" style={{ top: APEX_Y }}>
+      {Array.from({ length: 8 }, (_, i) => {
+        const angle = (i / 8) * Math.PI * 2;
+        return (
+          <motion.span
+            key={i}
+            className="absolute h-1 w-1 rounded-full"
+            style={{ background: i % 2 ? TRAIL.to : TRAIL.from, boxShadow: `0 0 6px ${TRAIL.from}` }}
+            initial={{ x: -2, y: -2, opacity: 1, scale: 1 }}
+            animate={{ x: Math.cos(angle) * 26 - 2, y: Math.sin(angle) * 26 - 2, opacity: 0, scale: 0.4 }}
+            transition={{ duration: 0.9, ease: EASE, delay: 0.15 }}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
+// Quick "turn around" when she switches between facing the rope and facing the viewer.
+const turn = {
+  initial: { opacity: 0, rotateY: -90 },
+  animate: { opacity: 1, rotateY: 0, transition: { duration: 0.18, ease: EASE } },
+  exit: { opacity: 0, rotateY: 90, transition: { duration: 0.14 } },
+};
+
+function ScrollClimber() {
+  const { scrollY, scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.4 });
+  const top = useTransform(progress, [SUMMIT_UNTIL, 1], ["0%", "100%"]);
+  const phase = useTransform(progress, (v) => v * CLIMB_CYCLES * Math.PI * 2);
+  const ropeOffset = useTransform(progress, [0, 1], [0, 240]);
+
+  const [summit, setSummit] = useState(true);
+  const [direction, setDirection] = useState("down");
+
+  useEffect(() => setSummit(scrollYProgress.get() <= SUMMIT_UNTIL), [scrollYProgress]);
+  useMotionValueEvent(scrollYProgress, "change", (v) => setSummit(v <= SUMMIT_UNTIL));
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const delta = y - (scrollY.getPrevious() ?? y);
+    if (Math.abs(delta) > 1) setDirection(delta > 0 ? "down" : "up");
+  });
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-y-0 z-10 hidden w-16 -translate-x-1/2 lg:block"
+      style={{ left: GUTTER_CENTER }}
+    >
+      {/* Peak */}
+      <svg viewBox="0 0 56 28" className="absolute left-1/2 w-14 -translate-x-1/2 overflow-visible" style={{ top: PEAK_TOP, height: PEAK_H }}>
+        <defs>
+          <linearGradient id="climber-peak" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#334155" />
+            <stop offset="1" stopColor="#334155" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M0 28 L20 8 L28 2 L34 8 L42 4 L56 28Z" fill="url(#climber-peak)" />
+        <motion.path
+          d="M0 28 L20 8 L28 2 L34 8 L42 4 L56 28"
+          fill="none"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+          animate={{ stroke: summit ? TRAIL.from : "rgba(255,255,255,0.14)" }}
+          transition={{ duration: 0.6 }}
+          style={summit ? { filter: `drop-shadow(0 0 4px ${TRAIL.from})` } : undefined}
+        />
+        <path d="M24.5 5 L28 2 L31.5 5.5 L28 4.5Z" fill="rgba(255,255,255,0.55)" />
+      </svg>
+
+      {/* Rope, with the stretch she's travelled from the summit lit up */}
+      <div className="absolute inset-x-0 bottom-10" style={{ top: TRACK_TOP }}>
+        <svg
+          className="absolute bottom-0 left-1/2 w-2 -translate-x-1/2 overflow-visible"
+          style={{ top: -(PEAK_H - 2), height: `calc(100% + ${PEAK_H - 2}px)` }}
+        >
+          <line x1="4" x2="4" y1="0" y2="100%" stroke="rgba(255,255,255,0.09)" strokeWidth="2" />
+          <motion.line
+            x1="4"
+            x2="4"
+            y1="0"
+            y2="100%"
+            stroke="rgba(255,255,255,0.16)"
+            strokeWidth="2"
+            strokeDasharray="1.5 5"
+            strokeLinecap="round"
+            style={{ strokeDashoffset: ropeOffset }}
+          />
+        </svg>
+
+        <motion.div
+          className="absolute left-1/2 w-[2px] -translate-x-1/2 rounded-full"
+          style={{
+            top: -(PEAK_H - 2),
+            height: PEAK_H - 2,
+            background: TRAIL.from,
+            boxShadow: `0 0 12px rgba(${TRAIL.rgb},0.7)`,
+          }}
+          animate={{ opacity: summit ? 0 : 1 }}
+        />
+        <motion.div
+          className="absolute left-1/2 top-0 w-[2px] -translate-x-1/2 rounded-b-full"
+          style={{
+            height: top,
+            background: `linear-gradient(180deg, ${TRAIL.from}, ${TRAIL.to})`,
+            boxShadow: `0 0 12px rgba(${TRAIL.rgb},0.7), 0 0 2px rgba(${TRAIL.rgb},0.9)`,
+          }}
+          animate={{ opacity: summit ? 0 : 1 }}
+        />
+
+        <AnimatePresence>
+          {!summit && (
+            <motion.div
+              key="traveller"
+              className="absolute left-1/2"
+              style={{ top, x: "-50%", y: "-10%", perspective: 400 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.25 } }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={direction} {...turn}>
+                  {direction === "down" ? <ReminiscingFigure phase={phase} /> : <ClimbingFigure phase={phase} />}
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Summit — the present */}
+      <AnimatePresence>
+        {summit && (
+          <motion.div key="summit" className="absolute inset-0" exit={{ opacity: 0, transition: { duration: 0.25 } }}>
+            <motion.span
+              className="absolute left-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
+              style={{ top: APEX_Y, background: `rgba(${TRAIL.rgb},0.35)` }}
+              animate={{ scale: [0.8, 1.25, 0.8], opacity: [0.5, 0.9, 0.5] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <SummitBurst />
+            <motion.div
+              className="absolute left-1/2"
+              style={{ top: APEX_Y - 44, x: "-50%" }}
+              initial={{ opacity: 0, y: 14, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <SummitFigure />
+            </motion.div>
+            <motion.p
+              className="absolute font-mono text-[10.5px] tracking-[0.18em] text-teal-200/85"
+              style={{
+                top: TRACK_TOP + 16,
+                left: "calc(50% + 9px)",
+                writingMode: "vertical-rl",
+                textShadow: `0 0 10px rgba(${TRAIL.rgb},0.6)`,
+              }}
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.7, ease: EASE }}
+            >
+              Looking forward to the next adventure!
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Page                                                                      */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export default function Portfolio() {
+  const { projects } = PROFILE;
+  const [activeId, setActiveId] = useState(projects[0].id);
+  const [autoplay, setAutoplay] = useState(true);
+
+  const project = projects.find((p) => p.id === activeId);
+  const accent = ACCENTS[activeId];
+
+  useEffect(() => {
+    if (!autoplay) return;
+    const id = setTimeout(() => {
+      const next = (projects.findIndex((p) => p.id === activeId) + 1) % projects.length;
+      setActiveId(projects[next].id);
+    }, dwellFor(project));
+    return () => clearTimeout(id);
+  }, [autoplay, activeId, project, projects]);
+
+  const select = (id) => {
+    setAutoplay(false);
+    setActiveId(id);
+  };
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="relative min-h-screen overflow-x-clip bg-[#05060a] font-sans text-slate-200 antialiased selection:bg-white/20">
+        <Backdrop accent={accent} />
+        <ScrollClimber />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          <ConsoleBar activeId={activeId} accent={accent} />
+
+          <main className="mt-12 grid gap-12 lg:mt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-x-16 lg:gap-y-14">
+            <div className="lg:col-start-1 lg:row-start-1">
+              <Intro accent={accent} />
+            </div>
+
+            <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+              <div className="lg:sticky lg:top-8">
+                <PhoneStage
+                  project={project}
+                  accent={accent}
+                  projects={projects}
+                  activeId={activeId}
+                  autoplay={autoplay}
+                  onSelect={select}
+                />
+              </div>
+            </aside>
+
+            <div className="lg:col-start-1 lg:row-start-2">
+              <Projects activeId={activeId} accent={accent} onSelect={select} />
+            </div>
+          </main>
+        </div>
+      </div>
+    </MotionConfig>
+  );
+}
